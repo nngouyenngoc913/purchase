@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sale Page</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    margin: 0;
+}
+
+header {
+    background: #111;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.product {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+input[type="number"] {
+    width: 60px;
+}
+
+.cart-totals {
+    background: white;
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.total {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+button {
+    padding: 10px;
+    width: 100%;
+    background: #111;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #333;
+}
+
+#coupon-msg {
+    margin-top: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🔥 Sale Page 🔥</h1>
+    <p>Simple Cart with Coupon</p>
+</header>
+
+<div class="container">
+
+    <!-- PRODUCTS -->
+    <div class="product" data-price="50">
+        <strong>Product A</strong>
+        <span>$50</span>
+        <input type="number" class="qty" value="1" min="1">
+        <span class="item-subtotal">$50</span>
+    </div>
+
+    <div class="product" data-price="30">
+        <strong>Product B</strong>
+        <span>$30</span>
+        <input type="number" class="qty" value="2" min="1">
+        <span class="item-subtotal">$60</span>
+    </div>
+
+    <!-- CART TOTALS -->
+    <div class="cart-totals">
+        <h3>Cart Totals</h3>
+
+        <div class="row">
+            <span>Subtotal</span>
+            <span>$<span id="subtotal">0.00</span></span>
+        </div>
+
+        <div class="row">
+            <span>Shipping</span>
+            <span>Free</span>
+        </div>
+
+        <div class="row total">
+            <span>Total</span>
+            <span>$<span id="total">0.00</span></span>
+        </div>
+
+        <!-- COUPON -->
+        <input type="text" id="coupon" placeholder="Coupon code">
+        <button onclick="applyCoupon()">Apply Coupon</button>
+        <p id="coupon-msg"></p>
+
+        <!-- CHECKOUT -->
+        <button onclick="checkout()">Proceed to Checkout</button>
+    </div>
+
+</div>
+
+<script>
+let discount = 0;
+let coupons = {};
+
+// Load coupons from CSV
+fetch("coupons.csv")
+    .then(res => res.text())
+    .then(data => {
+        const rows = data.split("\n").slice(1);
+        rows.forEach(row => {
+            const [code, value] = row.split(",");
+            if (code && value) {
+                coupons[code.trim()] = parseFloat(value);
+            }
+        });
+    });
+
+function updateCart() {
+    let subtotal = 0;
+
+    document.querySelectorAll(".product").forEach(p => {
+        const price = Number(p.dataset.price);
+        const qty = Number(p.querySelector(".qty").value);
+        const itemSubtotal = price * qty;
+
+        p.querySelector(".item-subtotal").textContent = "$" + itemSubtotal;
+        subtotal += itemSubtotal;
+    });
+
+    const total = subtotal - subtotal * discount;
+
+    document.getElementById("subtotal").textContent = subtotal.toFixed(2);
+    document.getElementById("total").textContent = total.toFixed(2);
+}
+
+function applyCoupon() {
+    const code = document.getElementById("coupon").value.trim().toUpperCase();
+    const msg = document.getElementById("coupon-msg");
+
+    if (coupons[code] !== undefined) {
+        discount = coupons[code];
+        msg.textContent = `Coupon applied: ${discount * 100}% off`;
+        msg.style.color = "green";
+    } else {
+        discount = 0;
+        msg.textContent = "Invalid coupon code";
+        msg.style.color = "red";
+    }
+    updateCart();
+}
+
+function checkout() {
+    alert("Proceeding to checkout...");
+    // window.location.href = "checkout.html";
+}
+
+document.querySelectorAll(".qty").forEach(q => {
+    q.addEventListener("input", updateCart);
+});
+
+updateCart();
+</script>
+
+</body>
+</html>
